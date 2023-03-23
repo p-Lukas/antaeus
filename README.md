@@ -1,12 +1,39 @@
-> :warning: This repository was archived automatically since no ownership was defined :warning:
->
-> For details on how to claim stewardship of this repository see:
->
-> [How to configure a service in OpsLevel](https://www.notion.so/pleo/How-to-configure-a-service-in-OpsLevel-f6483fcb4fdd4dcc9fc32b7dfe14c262)
->
-> To learn more about the automatic process for stewardship which archived this repository see:
->
-> [Automatic process for stewardship](https://www.notion.so/pleo/Automatic-process-for-stewardship-43d9def9bc9a4010aba27144ef31e0f2)
+
+## Initial thoughts on how to tackle the problem:
+
+### Task at hand:
+
+- build a logic that will schedule payments and **trigger** payments via the PaymentProvider interface at the first of the month
+
+### assumptions:
+1. Time was spent investigating. Solutions like jobrunr.io and others were found to be inadequate for this task.
+2. The PaymentProvider interface is external to this system, but internal to pleo itself (assumption was made due to passing customerId instead of IBANs).
+3. It is unknown to us if and how fast the PaymentProvider interface can scale.
+4. The number of invoices is not that large, that the machine will run out of memory when loading all at once.
+5. The number of invoices is not that large, that one machine cannot process them in a timely manner.
+
+### solution idea:
+1. schedule task to be executed at the first of the month
+2. fetch all unpaid and not failed invoices from the DB
+3. for each fetched invoice:
+   1. mark that invoice is about to be processed
+   2. process invoice:
+      1. mark successfully charged invoices as paid
+      2. mark invoices failed due to account balance as failed and notify customer 
+      3. in case of a NetworkException the processing is throttled and failed ones retried
+         - this is done because of assumption two and three
+         - if the retry failed it will be marked for retry in the DB and retried with the other failed invoices 
+      4. in case of a CustomerNotFoundException or CurrencyMismatchException, the invoice is marked as failed:
+         - failed invoices will either be reviewed by the support-team or an automated solution exists to fix issues
+         - failed invoices will be marked for retry
+4. after support approves or automated system fixed the invoices failed due to exception. 
+As retry marked invoices will be reprocessed. See API-endpoint for trigger. 
+
+
+## time spent:
+1. 90min looking through the code base, running the rest API and sketching out the first solution idea
+
+----
 
 ## Antaeus
 
