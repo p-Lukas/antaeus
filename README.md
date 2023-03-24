@@ -8,30 +8,34 @@
 ### assumptions:
 1. Time was spent investigating. Solutions like jobrunr.io and others were found to be inadequate for this task.
 2. The PaymentProvider interface is external to this system, but internal to pleo itself (assumption was made due to passing customerId instead of IBANs).
-3. It is unknown to us if and how fast the PaymentProvider interface can scale.
-4. The number of invoices is not that large, that the machine will run out of memory when loading all at once.
-5. The number of invoices is not that large, that one machine cannot process them in a timely manner.
+3. There is only one PaymentProvider system.
+4. It is unknown to us if and how fast the PaymentProvider interface can scale.
+5. The number of invoices is not that large, that the machine will run out of memory when loading all at once.
+6. The number of invoices is not that large, that one machine cannot process them in a timely manner.
 
 ### solution idea:
 1. schedule task to be executed at the first of the month
 2. fetch all unpaid and not failed invoices from the DB
-3. for each fetched invoice:
-   1. mark that invoice is about to be processed
-   2. process invoice:
-      1. mark successfully charged invoices as paid
-      2. mark invoices failed due to account balance as failed and notify customer 
-      3. in case of a NetworkException the processing is throttled and failed ones retried
-         - this is done because of assumption two and three
-         - if the retry failed it will be marked for retry in the DB and retried with the other failed invoices 
-      4. in case of a CustomerNotFoundException or CurrencyMismatchException, the invoice is marked as failed:
-         - failed invoices will either be reviewed by the support-team or an automated solution exists to fix issues
-         - failed invoices will be marked for retry
+3. process each fetched invoice:
+   1. mark successfully charged invoices as paid
+   2. mark invoices failed due to account balance as failed and notify customer 
+   3. in case of a NetworkException the processing is throttled and failed ones retried
+      - this is done because of assumption two, three and four
+      - if the retry failed it will be marked for retry in the DB and retried with the other failed invoices 
+   4. in case of a CustomerNotFoundException or CurrencyMismatchException, the invoice is marked as failed:
+      - failed invoices will either be reviewed by the support-team or an automated solution exists to fix issues
+      - failed invoices will be marked for retry
 4. after support approves or automated system fixed the invoices failed due to exception. 
 As retry marked invoices will be reprocessed. See API-endpoint for trigger. 
 
 
+## Comments on Improvements:
+- Not much thought was left on the design of the added API-Endpoints. As they are considered out of scope for this task. Prob. Improvements needed. 
+
+
 ## time spent:
 1. 90min looking through the code base, running the rest API and sketching out the first solution idea
+2. 180min first iteration: no concurrency, no tests, no scheduler
 
 ----
 
