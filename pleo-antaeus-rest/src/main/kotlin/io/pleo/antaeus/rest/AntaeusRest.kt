@@ -6,13 +6,12 @@ package io.pleo.antaeus.rest
 
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
-import io.javalin.http.Context
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
-import io.pleo.antaeus.models.Invoice
 import mu.KotlinLogging
+import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
 private val thisFile: () -> Unit = {}
@@ -83,8 +82,9 @@ class AntaeusRest(
                     path("rerun"){
                         // URL: /rest/v1/rerun
                         get{
-                            //TODO: trigger processing in separate thread
-                            billingService.processRetryInvoices()
+                            thread {
+                                billingService.processRetryInvoices()
+                            }
                             it.json("Successfully triggered")
                         }
                     }

@@ -13,17 +13,20 @@ fun Project.kotlinProject() {
         // Kotlin libs
         "implementation"(kotlin("stdlib"))
 
+        // coroutines
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
         // Logging
-        "implementation"("org.slf4j:slf4j-simple:1.7.30")
+        "implementation"("org.slf4j:slf4j-simple:2.0.7")
         "implementation"("io.github.microutils:kotlin-logging:1.7.8")
 
         // Mockk
-        "testImplementation"("io.mockk:mockk:1.9.3")
+        "testImplementation"("io.mockk:mockk:1.13.4")
 
         // JUnit 5
         "testImplementation"("org.junit.jupiter:junit-jupiter-api:$junitVersion")
         "testImplementation"("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-        "runtime"("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+        "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }
 }
 

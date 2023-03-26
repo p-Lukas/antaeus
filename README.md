@@ -36,6 +36,8 @@ As retry marked invoices will be reprocessed. See API-endpoint for trigger.
 ## time spent:
 1. 90min looking through the code base, running the rest API and sketching out the first solution idea
 2. 180min first iteration: no concurrency, no tests, no scheduler
+3. 150min Added Concurrency and scheduler. Investigation on how kotlin coroutine works in detail. Upgrading of dependencies to use this feature fully (most of the time spent here :/)
+
 
 ----
 
