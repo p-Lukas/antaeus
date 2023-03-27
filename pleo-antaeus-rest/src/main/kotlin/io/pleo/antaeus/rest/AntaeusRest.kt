@@ -5,19 +5,21 @@
 package io.pleo.antaeus.rest
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.apibuilder.ApiBuilder.*
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
+import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
+import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
 private val thisFile: () -> Unit = {}
 
 class AntaeusRest(
     private val invoiceService: InvoiceService,
-    private val customerService: CustomerService
+    private val customerService: CustomerService,
+    private val billingService: BillingService
 ) : Runnable {
 
     override fun run() {
@@ -57,13 +59,33 @@ class AntaeusRest(
                 path("v1") {
                     path("invoices") {
                         // URL: /rest/v1/invoices
+                        // URL: /rest/v1/invoices?state=needAttention
                         get {
-                            it.json(invoiceService.fetchAll())
+                            val qParam = it.queryParam("state")
+                            if (qParam == null){
+                                it.json(invoiceService.fetchAll())
+                            }else if (qParam == "needAttention"){
+                                it.json(invoiceService.fetchFixableFailedInvoices())
+                            }
                         }
 
                         // URL: /rest/v1/invoices/{:id}
                         get(":id") {
                             it.json(invoiceService.fetch(it.pathParam("id").toInt()))
+                        }
+
+                        patch(":id"){
+                            it.json(invoiceService.markReadyForRetry(it.pathParam("id").toInt()))
+                        }
+                    }
+
+                    path("rerun"){
+                        // URL: /rest/v1/rerun
+                        get{
+                            thread {
+                                billingService.processRetryInvoices()
+                            }
+                            it.json("Successfully triggered")
                         }
                     }
 
