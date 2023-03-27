@@ -43,7 +43,7 @@
 4. 1,5h Fighting with gradle a bit more. & added some test (should be expanded on...). + improved comments
 
 ### Total time spent:
-~ 1d familiarising myself with Kotlin. It is the first time I use it. 
+~ 1d familiarising myself with Kotlin. It is the first time I use it.  
 ~ 1d working on this project
 
 ----
