@@ -65,7 +65,7 @@ class AntaeusDal(private val db: Database) {
         return transaction(db){
             InvoiceTable
                 .update({InvoiceTable.id eq id}){
-                    it[this.status] = InvoiceStatus.RETRY.toString()
+                    it[this.status] = InvoiceStatus.TO_RETRY.toString()
                 }
         }
     }

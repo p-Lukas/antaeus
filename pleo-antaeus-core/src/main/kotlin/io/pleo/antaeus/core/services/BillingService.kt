@@ -23,8 +23,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Billing Service:
  *
- * With the assumptions 2,3 and 4 in mind, when getting an NetworkException, throttling kicks in, in form of reduction in requests per second.
- * We use throttling, as overload
+ * With the assumptions 2, 3 and 4 in mind, when getting an NetworkException, throttling kicks in, in form of reduction in requests per second.
  */
 class BillingService(
     private val paymentProvider: PaymentProvider,
@@ -44,12 +43,12 @@ class BillingService(
     }
 
     override fun run(){
-        processInvoices(invoiceService.fetchPending())
+        processInvoices(invoiceService.fetchPending())  //with large data-sets this should be pulled and processed in batches
         scheduler.scheduleExecution()   //Schedules the next execution
     }
 
     fun processRetryInvoices(){
-        processInvoices(invoiceService.fetchRetry())
+        processInvoices(invoiceService.fetchRetry()) //with large data-sets this should be pulled and processed in batches
     }
 
     private fun processInvoices(invoices: List<Invoice>) = runBlocking{
@@ -59,6 +58,10 @@ class BillingService(
             // The IO bound Dispatcher was chosen, because sending out the payment request and updating the DB entry are IO bound.
             launch(Dispatchers.IO){
                 processSingleInvoice(invoice)
+
+                //In cases of failures between these two functions. Some Invoices could be processed double.
+                // To avoid this, the recovery mechanism would need to check bank transactions of customers who have
+                // pending invoices and update the invoices accordingly.
                 invoiceService.updateStatus(invoice)
             }
             delay(networkThrottle * THROTTLE_MULTIPLIER)
@@ -99,14 +102,14 @@ class BillingService(
             /**
              * Even though NetworkException is very general and can have multifaceted reasons; connection refused,
              * timed out, addr. unreachable, etc.
-             * Waiting and retrying, resolves most issues.
+             * Waiting and retrying, resolves most issues...
              */
             increaseThrottle()
             if (0 < retriesLeft){
                 delay(networkThrottle * THROTTLE_MULTIPLIER)
                 processSingleInvoice(invoice, retriesLeft - 1)
             }else{
-                invoice.status = InvoiceStatus.RETRY
+                invoice.status = InvoiceStatus.TO_RETRY
                 failedInvoices += 1
             }
         }catch (e: CurrencyMismatchException){

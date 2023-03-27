@@ -6,7 +6,7 @@
 - build a logic that will schedule payments and **trigger** payments via the PaymentProvider interface at the first of the month
 
 ### assumptions:
-1. Time was spent investigating. Solutions like jobrunr.io and others were found to be inadequate for this task.
+1. Time was spent investigating. Solutions like jobrunr.io and others were found to be inadequate for this task. That is why we write our own.
 2. The PaymentProvider interface is external to this system, but internal to pleo itself (assumption was made due to passing customerId instead of IBANs).
 3. There is only one PaymentProvider system.
 4. It is unknown to us if and how fast the PaymentProvider interface can scale.
@@ -25,19 +25,26 @@
    4. in case of a CustomerNotFoundException or CurrencyMismatchException, the invoice is marked as failed:
       - failed invoices will either be reviewed by the support-team or an automated solution exists to fix issues
       - failed invoices will be marked for retry
-4. after support approves or automated system fixed the invoices failed due to exception. 
-As retry marked invoices will be reprocessed. See API-endpoint for trigger. 
+4. after support approves or an automated system fixed the failed invoices, they are marked by the external system ready for retry.
+5. As retry marked invoices will be reprocessed. API-endpoint for trigger (/rest/v1/rerun). 
 
 
-## Comments on Improvements:
-- Not much thought was left on the design of the added API-Endpoints. As they are considered out of scope for this task. Prob. Improvements needed. 
-
+## Comments on possible Improvements:
+- Not much thought put into the design of the added API-Endpoints. As they are considered out of scope for this task. Prob. Improvements needed.
+- Batch processing of invoices could be implemented. Decreases loading time from DB and failover time improves.
+- Process of handling failed Invoices 
+- No recovery mechanism is implemented in case of processing failure.
+- writing most testcases was skipped due to lack of time
 
 ## time spent:
-1. 90min looking through the code base, running the rest API and sketching out the first solution idea
-2. 180min first iteration: no concurrency, no tests, no scheduler
-3. 150min Added Concurrency and scheduler. Investigation on how kotlin coroutine works in detail. Upgrading of dependencies to use this feature fully (most of the time spent here :/)
+1. 1,5h looking through the code base, running the rest API and sketching out the first solution idea
+2. 3h first iteration: no concurrency, no tests, no scheduler
+3. 2,5h Added Concurrency and scheduler. Investigation on how kotlin coroutine works in detail. Upgrading of dependencies to use this feature fully (most of the time spent here :/)
+4. 1,5h Fighting with gradle a bit more. & added some test (should be expanded on...). + improved comments
 
+### Total time spent:
+~ 1d familiarising myself with Kotlin. It is the first time I use it. 
+~ 1d working on this project
 
 ----
 

@@ -23,7 +23,7 @@ class InvoiceService(private val dal: AntaeusDal) {
     }
 
     fun fetchRetry(): List<Invoice>{
-        return dal.fetchInvoices(InvoiceStatus.RETRY)
+        return dal.fetchInvoices(InvoiceStatus.TO_RETRY)
     }
 
     fun fetchFixableFailedInvoices(): List<Invoice>{

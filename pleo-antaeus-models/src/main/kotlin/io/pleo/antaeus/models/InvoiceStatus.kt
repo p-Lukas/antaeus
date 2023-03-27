@@ -6,6 +6,6 @@ enum class InvoiceStatus {
     FAILED_NO_BALANCE,
     FAILED_CURRENCY,
     FAILED_NO_CUSTOMER,
-    RETRY,
+    TO_RETRY,
     FAILED
 }
